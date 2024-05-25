@@ -1,0 +1,2 @@
+- are there specific subsets of (political) memes on which the models do worse/better?
+	subsets can be based on visual/textual features.
