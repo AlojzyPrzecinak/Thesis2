@@ -1,3 +1,4 @@
+from packaging import _tokenizer
 from transformers import AutoImageProcessor, CLIPForImageClassification
 import torch
 import json
@@ -49,6 +50,26 @@ class HatefulMemesDataset(torch.utils.data.Dataset):
     def __len__(self):
         return len(self.data)
 
+def split_into_chunks(text, context_length):
+    # Split the text into words
+    words = text.split(' ')
+    chunks = []
+
+    # Create chunks that are at most context_length characters long
+    current_chunk = []
+    for word in words:
+        potential_chunk = current_chunk + [word]
+        if len(' '.join(potential_chunk)) <= context_length:
+            current_chunk = potential_chunk
+        else:
+            chunks.append(' '.join(current_chunk))
+            current_chunk = [word]
+
+    # Add the last chunk if it's not empty
+    if current_chunk:
+        chunks.append(' '.join(current_chunk))
+
+    return chunks
 
 train_data = HatefulMemesDataset(train_path)
 val_data = HatefulMemesDataset(dev_path)
@@ -92,11 +113,23 @@ for i in range(len(train_data)):
     #     text = text + " 0000000000"
     ground_truth.append(label)
     image_input = preprocess(image).unsqueeze(0).to(device)
-    text_input = clip.tokenize(text).to(device)
+    #text_input = clip.tokenize(text).to(device)
 
+    # Encode the image into a feature vector
     with torch.no_grad():
         image_features = model.encode_image(image_input).float()
-        text_features = model.encode_text(text_input).float()
+
+    # Split the text into chunks and process each chunk separately
+    text_chunks = split_into_chunks(text, context_length)
+    text_features_list = []
+    for text_chunk in text_chunks:
+        text_input = clip.tokenize(text_chunk).to(device)
+        with torch.no_grad():
+            text_features = model.encode_text(text_input).float()
+        text_features_list.append(text_features)
+
+    # Aggregate the results from each chunk
+    text_features = torch.mean(torch.stack(text_features_list), dim=0)
 
     image_features /= image_features.norm(dim=-1, keepdim=True)
     text_features /= text_features.norm(dim=-1, keepdim=True)
