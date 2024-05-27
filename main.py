@@ -19,7 +19,8 @@ test_path = data_dir + '/test_seen.jsonl'
 
 similarity_threshold = 0.1
 
-class HatefulMemesDataset(torch.utils.data.Dataset):
+
+class Dataset(torch.utils.data.Dataset):
     def __init__(self, data_path):
         self.data = [json.loads(l) for l in open(data_path)]
         self.data_dir = os.path.dirname(data_path)
@@ -50,6 +51,7 @@ class HatefulMemesDataset(torch.utils.data.Dataset):
     def __len__(self):
         return len(self.data)
 
+
 def split_into_chunks(text, context_length):
     # Split the text into words
     words = text.split(' ')
@@ -71,9 +73,10 @@ def split_into_chunks(text, context_length):
 
     return chunks
 
-train_data = HatefulMemesDataset(train_path)
-val_data = HatefulMemesDataset(dev_path)
-test_data = HatefulMemesDataset(test_path)
+
+train_data = Dataset(train_path)
+val_data = Dataset(dev_path)
+test_data = Dataset(test_path)
 
 print('Data size of training data: %d samples' % len(train_data))
 print('Data size of validation data: %d samples' % len(val_data))
@@ -91,16 +94,21 @@ print("Input resolution:", input_resolution)
 print("Context length:", context_length)
 print("Vocab size:", vocab_size)
 
+# define the descriptions of the classes
 descriptions = {
     'good meme': 'a nonhateful meme ',
     'hateful meme': 'a hateful meme based on race, nationality, religion or disability'
 }
+
+# tokenize the descriptions
 text_labels = [descriptions['good meme'], descriptions['hateful meme']]
 text_tokens = clip.tokenize([desc for desc in text_labels]).to(device)
 
+# Encode the descriptions into feature vectors
 with torch.no_grad():
     F_text_features = model.encode_text(text_tokens).float()
 
+# Normalize the features
 F_text_features /= F_text_features.norm(dim=-1, keepdim=True)
 
 ground_truth = []
@@ -133,13 +141,18 @@ for i in range(len(train_data)):
 
     image_features /= image_features.norm(dim=-1, keepdim=True)
     text_features /= text_features.norm(dim=-1, keepdim=True)
+
+    # calculate the cosine similarity between the image and the text
     similarity = image_features.cpu().numpy() @ text_features.cpu().numpy().T
 
+    # if the similarity between text and is below the threshold, predict the image as a good meme
     if similarity < similarity_threshold:
         predicted_label = 0
         predicted.append(predicted_label)
     else:
         hate_similarity = (image_features.cpu() @ F_text_features.cpu().T).softmax(dim=-1)
+        # if similarity between the image and good meme is higher than the similarity between the image and hateful
+        # meme, predict the image as a good meme
         if hate_similarity[0][0] > hate_similarity[0][1]:
             predicted_label = 0
             predicted.append(predicted_label)
@@ -147,12 +160,11 @@ for i in range(len(train_data)):
             predicted_label = 1
             predicted.append(predicted_label)
 
-#Calculate accuracy
+# Calculate accuracy
 total_predictions = np.array(predicted)
-total_ground_truth =  np.array(ground_truth)
+total_ground_truth = np.array(ground_truth)
 accuracy = np.mean((total_predictions == total_ground_truth).astype(np.float64)) * 100
-print('The accuracy of the model is %.2f' % (accuracy)+'%')
-
+print('The accuracy of the model is %.2f' % (accuracy) + '%')
 
 # y_true: true labels, y_score: predicted scores
 fpr, tpr, thresholds = roc_curve(total_ground_truth, total_predictions)
