@@ -18,6 +18,11 @@ ground_truth = []
 predicted = []
 model = Model()
 
+print("Model parameters:", f"{np.sum([int(np.prod(p.shape)) for p in model.parameters]):,}")
+print("Input resolution:", model.input_resolution)
+print("Context length:", model.context_length)
+print("Vocab size:", model.vocab_size)
+
 with open('MultiOFF/Training_meme_dataset.csv', 'r', encoding='utf-8') as file:
     reader = csv.reader(file)
     next(reader)  # Skip the header row
