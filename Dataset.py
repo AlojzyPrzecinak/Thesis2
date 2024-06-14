@@ -6,8 +6,9 @@ import torch
 
 class Dataset(torch.utils.data.Dataset):
     def __init__(self, data_path):
-        self.data = [json.loads(l) for l in open(data_path)]
-        self.data_dir = os.path.dirname(data_path)
+        with open(data_path, 'r', encoding='utf-8') as f:
+            self.data = [json.loads(l) for l in f]
+            self.data_dir = os.path.dirname(data_path)
 
     def __getitem__(self, index: int):
         # Load images on the fly.

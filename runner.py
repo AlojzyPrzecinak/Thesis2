@@ -29,11 +29,14 @@ def run_script(model_type, dataset, prompt_version=None, gemini_model_name=None,
         data_dir = 'HarmP/img'
     elif dataset == 'HatefulMemes':
         data_dir = 'hateful_memes'
+    elif dataset == 'MultiOFF':
+        data_dir = 'MultiOFF'
     else:
         print(f"Dataset {dataset} not recognized.")
         return
 
     HarP_label_mapping = {'not harmful': 0, 'somewhat harmful': 1, 'very harmful': 1}
+    MultiOFF_label_mapping = {'N': 0, 'o': 1}
 
     # train_path = data_dir + '/train_v1.jsonl'
     # dev_path = data_dir + '/val_v1.jsonl'
@@ -57,6 +60,8 @@ def run_script(model_type, dataset, prompt_version=None, gemini_model_name=None,
         image, text, label = experiment_data[i]
         if dataset == 'HarmP':
             label = HarP_label_mapping[label]
+        elif dataset == 'MultiOFF':
+            label = MultiOFF_label_mapping[label]
         ground_truth.append(label)
         predicted_label = model.predict(image, text)
         predicted.append(predicted_label)
