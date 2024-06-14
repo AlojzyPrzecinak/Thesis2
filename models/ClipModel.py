@@ -12,7 +12,7 @@ from sklearn.metrics import roc_auc_score, roc_curve
 from PIL import Image
 
 
-class Model:
+class ClipModel:
     def __init__(self, model_name="ViT-B/32"):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.model, self.preprocess = clip.load(model_name, self.device)

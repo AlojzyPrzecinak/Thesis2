@@ -13,7 +13,7 @@ class Dataset(torch.utils.data.Dataset):
         # Load images on the fly.
         image = Image.open(os.path.join(self.data_dir, self.data[index]["img"])).convert("RGB")
         text = self.data[index]["text"]
-        label = self.data[index]["label"]
+        label = self.data[index]["label"][0]
 
         return image, text, label
 
