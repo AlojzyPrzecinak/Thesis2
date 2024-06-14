@@ -16,11 +16,11 @@ import csv
 from PIL import Image
 
 
-def run_script(model_type, dataset, prompt_version=None, gemini_model_name=None):
+def run_script(model_type, dataset, prompt_version=None, gemini_model_name=None, api_key=None):
     if model_type == 'ClipModel':
         model = ClipModel()
     elif model_type == 'GeminiModel':
-        model = GeminiModel(prompt_version=prompt_version, model_name=gemini_model_name)
+        model = GeminiModel(prompt_version=prompt_version, model_name=gemini_model_name, api_key=api_key)
     else:
         print(f"Model {model_type} not recognized.")
         return
@@ -94,7 +94,7 @@ def run_script(model_type, dataset, prompt_version=None, gemini_model_name=None)
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
-        print("Usage: python runner.py [model_type] [dataset] OPTIONAL: [prompt_version] [gemini_model_name]")
+        print("Usage: python runner.py [model_type] [dataset] OPTIONAL: [prompt_version] [gemini_model_name] [api_key]")
     else:
         run_script(sys.argv[1], sys.argv[2], sys.argv[3] if len(sys.argv) > 3 else None,
-                   sys.argv[4] if len(sys.argv) > 4 else None)
+                   sys.argv[4] if len(sys.argv) > 4 else None, sys.argv[5] if len(sys.argv) > 5 else None)

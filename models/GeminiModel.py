@@ -7,14 +7,13 @@ import csv
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
 from google.generativeai import GenerationConfig
 
-#API_KEY = os.environ["AIzaSyDLfv0aK2GhBTIR4br_l7F5lQPOdvXbEY8"]
 config = GenerationConfig(temperature=0)
 instructions = "You are a binary classifier. Determine if the meme is hateful or not, based on the image and text. Answer ONLY with 0 for non-hateful and 1 for hateful."
 
 
 class GeminiModel:
-    def __init__(self, model_name, prompt_version):
-        genai.configure(api_key="AIzaSyDLfv0aK2GhBTIR4br_l7F5lQPOdvXbEY8")
+    def __init__(self, model_name, prompt_version, api_key):
+        genai.configure(api_key=api_key)
         self.model = genai.GenerativeModel(model_name, generation_config=config, system_instruction=instructions)
         #self.model.temperature = 0
         self.definition = "A direct or indirect attack on people based on characteristics, including ethnicity, race, nationality, immigration status, religion, caste, sex, gender identity, sexual orientation, and disability or disease."
