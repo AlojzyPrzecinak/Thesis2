@@ -56,6 +56,7 @@ def run_script(model_type, dataset, prompt_version=None, gemini_model_name=None,
 
     ground_truth = []
     predicted = []
+    exception_count = 0
     for i in tqdm(range(len(experiment_data)), desc="Processing data"):
         image, text, label = experiment_data[i]
         if dataset == 'HarmP':
@@ -64,8 +65,12 @@ def run_script(model_type, dataset, prompt_version=None, gemini_model_name=None,
             label = MultiOFF_label_mapping[label]
         ground_truth.append(label)
         predicted_label = model.predict(image, text)
+        if predicted_label is None:  # Check if predict returned None, which indicates an exception
+            exception_count += 1
+        predicted.append(predicted_label if predicted_label is not None else 0)  # Handle None case
         predicted.append(predicted_label)
 
+    predicted = list(map(int, predicted))
     total_predictions = np.array(predicted)
     total_ground_truth = np.array(ground_truth)
     accuracy = np.mean((total_predictions == total_ground_truth).astype(np.float64)) * 100
@@ -76,6 +81,10 @@ def run_script(model_type, dataset, prompt_version=None, gemini_model_name=None,
         print('Prompt Version: %s' % prompt_version)
         print('Model Name: %s' % gemini_model_name)
     print('The accuracy of the model is %.2f' % (accuracy) + '%')
+    print('Total exceptions during processing: %d' % exception_count)  # Print the number of exceptions
+
+    print("True_labels: ", total_ground_truth.tolist())
+    print("Predicted_labels: ", total_predictions.tolist())
 
     fpr, tpr, thresholds = roc_curve(total_ground_truth, total_predictions)
     roc_auc = roc_auc_score(total_ground_truth, total_predictions)

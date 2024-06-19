@@ -26,20 +26,27 @@ class GeminiModel:
         # Choose the prompt based on the prompt_version attribute
         prompt = self.prompt_short if self.prompt_version == 'short' else self.prompt_long
 
-        # Generate a prediction for the given image and text
-        response = self.model.generate_content([prompt, image, text], safety_settings={
-            HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
-            HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
-            HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
-            HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
-            #HarmCategory.HARM_CATEGORY_UNSPECIFIED: HarmBlockThreshold.BLOCK_NONE
-        })
+        try:
+            # Generate a prediction for the given image and text
+            response = self.model.generate_content([prompt, image, text], safety_settings={
+                HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+                HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+                HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+                HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+                #HarmCategory.HARM_CATEGORY_UNSPECIFIED: HarmBlockThreshold.BLOCK_NONE
+            })
 
-        # Check if the response is empty
-        if not response.candidates:
-            print(response.prompt_feedback)
+            # Check if the response is empty
+            if not response.candidates:
+                print(response.prompt_feedback)
+                print("Failed to get a response from the model. Img: ", image, " Text: ", text)
+                #print(response.finish_reason)
+                #return 1 if the respnse has a prompt issue - its been observed that these are usually hateful
+                return 1
+
+        except Exception as e:
             print("Failed to get a response from the model. Img: ", image, " Text: ", text)
-            #print(response.finish_reason)
-            return 0
+            print(e)
+            return None
 
         return response.text

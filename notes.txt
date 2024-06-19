@@ -1,2 +1,8 @@
 - are there specific subsets of (political) memes on which the models do worse/better?
 	subsets can be based on visual/textual features.
+
+
+- How do I answer a question about why did I use the models I did?
+ - Why transformers?
+ - Why these specific models?
+ - Is it something we know the companies use? : my natural answer is that the companies would not disclose this (because it could be exploited knowing the model biases)
