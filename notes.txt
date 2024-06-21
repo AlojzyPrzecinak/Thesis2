@@ -6,3 +6,28 @@
  - Why transformers?
  - Why these specific models?
  - Is it something we know the companies use? : my natural answer is that the companies would not disclose this (because it could be exploited knowing the model biases)
+ --> prior work uses these models
+ --> they make sense to be used - GEmini is sota, CLIP is text and vision
+
+- citation style: am I allowed to choose? I think the LNCS format dictates it.
+- shortening the introduction and related work - will it not make the thesis too short?
+--> seems to be fine
+- should I describe the method for the clip model? Maybe even visualise the vector operations? is this in line with this comment in the third section?
+            "You cannot just present the models you use in a half-paragraph.
+            I suggest giving this its own subsection and spending at least a paragraph per model to describe their details and how you use them, how you prompt them,
+            if there is any tuning, etc."
+--> add description of the models, look at other papers
+--> visualisation of the workflow: input, output
+--> what they are? what are they commonly used for? why for memes, how are they used in my case
+- Im running the gemini results, just running out of the daily quotas.
+--> use only the Gemini one with the definition, motivating that its been better so far
+--> use cache, save the key index
+- Section 4.2 comment is cut in the UI - what was the full content of it? Qualitative analysis in terms of examples is just showing the examples and predicted labels, right?
+--> give story and interpretation of the examples, it can be speculative - 4.1 - qualitative analysis
+--> 4.2 confusion matrix or small case (30 cases) error anylsis. OR both if time
+- "why the without the definiotion the p-values are higher" - isnt it just a property of a mathematical formula?
+
+- precision and recall - should I care about them and add the classification report?
+    They are not used in literature (apart from F1 in the MOMENTA paper) and I could argue that since false positves and false negatives are not equally bad, they are not that useful.
+
+- assuming I apply all the feedback, what is a grade I can ballpark expect?

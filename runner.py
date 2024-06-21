@@ -89,6 +89,10 @@ def run_script(model_type, dataset, prompt_version=None, gemini_model_name=None,
     fpr, tpr, thresholds = roc_curve(total_ground_truth, total_predictions)
     roc_auc = roc_auc_score(total_ground_truth, total_predictions)
 
+    print("True labels: ", total_ground_truth)
+    print("Predicted labels: ", total_predictions)
+
+
     print("AOC-ROC score: {:.2f}".format(roc_auc))
     print("FPR: ", fpr, "TPR: ", tpr)
     roc_auc_plot = auc(fpr, tpr)
