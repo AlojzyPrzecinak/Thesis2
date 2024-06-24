@@ -31,3 +31,8 @@
     They are not used in literature (apart from F1 in the MOMENTA paper) and I could argue that since false positves and false negatives are not equally bad, they are not that useful.
 
 - assuming I apply all the feedback, what is a grade I can ballpark expect?
+
+
+POSTER PRESETNATION QUESTION:
+- how do I introduce the topic (if at all)?
+- dataset statistics - distribution of labels (?) maybe distribution of instances is better worded?
