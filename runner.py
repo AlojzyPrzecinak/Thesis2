@@ -1,3 +1,5 @@
+import json
+import os
 import sys
 
 from tqdm import tqdm
@@ -19,8 +21,13 @@ from PIL import Image
 def run_script(model_type, dataset, prompt_version=None, gemini_model_name=None, api_key=None):
     if model_type == 'ClipModel':
         model = ClipModel()
+        results_file = 'ClipResults.jsonl'
     elif model_type == 'GeminiModel':
         model = GeminiModel(prompt_version=prompt_version, model_name=gemini_model_name, api_key=api_key)
+        if gemini_model_name == 'gemini-1.5-flash-latest':
+            results_file = 'GeminiFlashResults.jsonl'
+        else:
+            results_file = 'GeminiProResultsClen.jsonl'
     else:
         print(f"Model {model_type} not recognized.")
         return
@@ -58,57 +65,35 @@ def run_script(model_type, dataset, prompt_version=None, gemini_model_name=None,
     predicted = []
     exception_count = 0
     for i in tqdm(range(len(experiment_data)), desc="Processing data"):
-        image, text, label = experiment_data[i]
+        image, image_path, text, label = experiment_data[i]
         if dataset == 'HarmP':
             label = HarP_label_mapping[label]
         elif dataset == 'MultiOFF':
             label = MultiOFF_label_mapping[label]
         ground_truth.append(label)
+
+        # Check if the image path, dataset, and prompt version are already in the results file
+        with open(results_file, 'r') as f:
+            if any(json.loads(line)["img"] == image_path and json.loads(line)["dataset"] == dataset and (
+                    model_type != 'GeminiModel' or json.loads(line)["prompt_version"] == prompt_version) for line in f):
+                continue  # Skip this iteration if the image path, dataset, and prompt version are already in the results file
+
         predicted_label = model.predict(image, text)
         if predicted_label is None:  # Check if predict returned None, which indicates an exception
             exception_count += 1
         predicted.append(predicted_label if predicted_label is not None else 0)  # Handle None case
-        predicted.append(predicted_label)
 
-    predicted = list(map(int, predicted))
-    total_predictions = np.array(predicted)
-    total_ground_truth = np.array(ground_truth)
-    accuracy = np.mean((total_predictions == total_ground_truth).astype(np.float64)) * 100
+        if predicted_label is not None and isinstance(predicted_label, str):
+            predicted_label = predicted_label.strip()  # Remove leading and trailing whitespace, including newline characters
 
-    print('Model: %s' % model_type)
-    print('Dataset: %s' % dataset)
-    if model_type == 'GeminiModel':
-        print('Prompt Version: %s' % prompt_version)
-        print('Model Name: %s' % gemini_model_name)
-    print('The accuracy of the model is %.2f' % (accuracy) + '%')
-    print('Total exceptions during processing: %d' % exception_count)  # Print the number of exceptions
+        with open(results_file, 'a') as f:
+            result = {"dataset": dataset, "img": image_path, "ground_label": label, "predicted_label": predicted_label}
+            if model_type == 'GeminiModel':
+                result["prompt_version"] = prompt_version
+            json.dump(result, f)
+            f.write('\n')  # Add a newline because json.dump() doesn't do it
 
-    print("True_labels: ", total_ground_truth.tolist())
-    print("Predicted_labels: ", total_predictions.tolist())
-
-    fpr, tpr, thresholds = roc_curve(total_ground_truth, total_predictions)
-    roc_auc = roc_auc_score(total_ground_truth, total_predictions)
-
-    print("True labels: ", total_ground_truth)
-    print("Predicted labels: ", total_predictions)
-
-
-    print("AOC-ROC score: {:.2f}".format(roc_auc))
-    print("FPR: ", fpr, "TPR: ", tpr)
-    roc_auc_plot = auc(fpr, tpr)
-    plt.figure()
-    plt.plot(fpr, tpr, color='darkorange', lw=2, label='ROC curve (area = %0.2f)' % roc_auc)
-    plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
-    plt.xlim([0.0, 1.0])
-    plt.ylim([0.0, 1.0])
-    plt.xlabel('False Positive Rate')
-    plt.ylabel('True Positive Rate')
-    plt.title('ROC Curve for %s on %s' % (model_type, dataset)) if model_type == 'ClipModel' \
-        else plt.title('ROC Curve for %s on %s with prompt version %s and model name %s' % (
-        model_type, dataset, prompt_version, gemini_model_name))
-    plt.legend(loc="lower right")
-    plt.show()
-
+    print(f"Number of exceptions: {exception_count}")
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:

@@ -11,12 +11,13 @@ class Dataset(torch.utils.data.Dataset):
             self.data_dir = os.path.dirname(data_path)
 
     def __getitem__(self, index: int):
-        # Load images on the fly.
-        image = Image.open(os.path.join(self.data_dir, self.data[index]["img"])).convert("RGB")
+        # Return both image object and image path.
+        image_path = os.path.join(self.data_dir, self.data[index]["img"])
+        image = Image.open(image_path).convert("RGB")
         text = self.data[index]["text"]
         label = self.data[index]["label"][0]
 
-        return image, text, label
+        return image, image_path, text, label
 
     def load_image_only(self, index: int):
         image = Image.open(os.path.join(self.data_dir, self.data[index]["img"])).convert("RGB")
